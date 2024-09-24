@@ -47,3 +47,12 @@ We welcome contributions! Please fork the repository and submit a pull request.
 ## License
 
 This project is licensed under the MIT License.
+
+
+Some libraries like :
+# Hallucination check (DEV Package)
+trulens
+trulens-apps-langchain
+trulens-providers-langchain
+trulens-providers-openai
+have been installed for development purposes, for Hallucination, Once WebSearch RAG Chain is attached, we can check the ground truthness, relevance, etc

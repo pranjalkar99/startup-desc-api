@@ -9,7 +9,18 @@ import os
 from dotenv import load_dotenv
 from langchain_openai import ChatOpenAI
 
+import numpy as np
+from trulens.core import Feedback
+from trulens.providers.openai import OpenAI
+from trulens.apps.langchain import TruChain
+
+
+
 load_dotenv()
+
+provider = OpenAI()
+
+
 
 os.environ['OPENAI_API_KEY'] = os.environ.get('OPENAI_API_KEY')
 
@@ -154,6 +165,12 @@ async def founder_summary(company_id: int):
     # Create an instance of LLMChain and invoke it with the input JSON
     llm_chain = LLMChain(prompt=founder_template, llm=llm)
     response =  llm_chain.invoke(input_json)
+    f_answer_relevance = Feedback(
+    provider.relevance_with_cot_reasons, name="Answer Relevance").on_input_output()
+
+    print(f_answer_relevance)
+
+    
     founder_dynamics_chain = LLMChain(prompt = founder_dynamics_template, llm=llm)
     response2 =  founder_dynamics_chain.invoke(input_json)
     talking_points_marketopp_chain = LLMChain(prompt = talking_points_marketopp_template, llm=llm)

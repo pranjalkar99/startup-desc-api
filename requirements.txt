@@ -6,3 +6,8 @@ langchain-openai
 pydantic[email]
 uvicorn
 requests
+# Hallucination check (DEV Package)
+trulens
+trulens-apps-langchain
+trulens-providers-langchain
+trulens-providers-openai
