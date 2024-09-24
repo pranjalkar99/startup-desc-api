@@ -1,0 +1,8 @@
+fastapi
+llama-index 
+llama-index-readers-web
+langchain
+langchain-openai
+pydantic[email]
+uvicorn
+requests
