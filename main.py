@@ -10,9 +10,9 @@ from dotenv import load_dotenv
 from langchain_openai import ChatOpenAI
 
 import numpy as np
-from trulens.core import Feedback
-from trulens.providers.openai import OpenAI
-from trulens.apps.langchain import TruChain
+# from trulens.core import Feedback
+# from trulens.providers.openai import OpenAI
+# from trulens.apps.langchain import TruChain
 from scoring import scoring_prompt
 
 
