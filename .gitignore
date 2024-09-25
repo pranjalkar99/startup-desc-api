@@ -2,3 +2,6 @@
 Startup List for CSV Import Demo - Startup List.csv
 sample.ipynb
 __pycache__/
+eenv/
+env/
+eeenv/

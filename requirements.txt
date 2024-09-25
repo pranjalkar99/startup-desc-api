@@ -3,7 +3,6 @@ llama-index
 llama-index-readers-web
 langchain
 langchain-openai
-pydantic[email]
 uvicorn==0.30.6
 requests
 langchain-community

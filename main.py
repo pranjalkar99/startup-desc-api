@@ -1,7 +1,7 @@
 # main.py
 from fastapi import FastAPI, HTTPException
 from typing import List, Optional
-from pydantic import BaseModel, HttpUrl, EmailStr
+from pydantic import BaseModel, HttpUrl
 from prompt import founder_template,founder_dynamics_template, talking_points_marketopp_template,talking_points_coach_template, concerns_template
 from langchain.chains import LLMChain
 
@@ -67,7 +67,7 @@ class CompanyInfo(BaseModel):
     expectations_from_investor: str
     primary_contact_first_name: str
     primary_contact_last_name: str
-    primary_contact_email: EmailStr
+    primary_contact_email: str
     primary_contact_phone: str
     pitch_deck_link: HttpUrl
     product_demo_video: Optional[HttpUrl]
