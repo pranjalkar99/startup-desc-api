@@ -19,7 +19,7 @@ from scoring import scoring_prompt
 
 load_dotenv()
 
-provider = OpenAI()
+# provider = OpenAI()
 
 
 
