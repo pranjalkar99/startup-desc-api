@@ -4,6 +4,7 @@ from typing import List, Optional
 from pydantic import BaseModel, HttpUrl, EmailStr
 from prompt import founder_template,founder_dynamics_template, talking_points_marketopp_template,talking_points_coach_template, concerns_template
 from langchain.chains import LLMChain
+from fastapi.middleware.cors import CORSMiddleware
 
 import os
 from dotenv import load_dotenv
@@ -78,6 +79,13 @@ class CompanyInfo(BaseModel):
 
 
 app = FastAPI()
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Allows all origins (you can restrict this to specific origins)
+    allow_credentials=True,
+    allow_methods=["*"],  # Allows all HTTP methods
+    allow_headers=["*"],  # Allows all headers
+)
 
 @app.get("/")
 def read_root():
@@ -94,6 +102,7 @@ company = {}
 
 @app.post("/submit-company-info/<int:company_id>")
 async def submit_company_info(info: CompanyInfo, company_id: int):
+    print("data submitted")
     global company
     if company_id in company:
         return {"message": "Company info already submitted"}
