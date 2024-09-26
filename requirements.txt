@@ -3,11 +3,13 @@ llama-index
 llama-index-readers-web
 langchain
 langchain-openai
-pydantic[email]
-uvicorn
+uvicorn==0.30.6
 requests
+langchain-community
+pydantic
+pydantic-core
 # Hallucination check (DEV Package)
-trulens
-trulens-apps-langchain
-trulens-providers-langchain
-trulens-providers-openai
+# trulens
+# trulens-apps-langchain
+# trulens-providers-langchain
+# trulens-providers-openai

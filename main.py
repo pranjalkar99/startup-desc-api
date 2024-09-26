@@ -1,7 +1,7 @@
 # main.py
 from fastapi import FastAPI, HTTPException
 from typing import List, Optional
-from pydantic import BaseModel, HttpUrl, EmailStr
+from pydantic import BaseModel, HttpUrl
 from prompt import founder_template,founder_dynamics_template, talking_points_marketopp_template,talking_points_coach_template, concerns_template
 from langchain.chains import LLMChain
 from fastapi.middleware.cors import CORSMiddleware
@@ -11,15 +11,16 @@ from dotenv import load_dotenv
 from langchain_openai import ChatOpenAI
 
 import numpy as np
-from trulens.core import Feedback
-from trulens.providers.openai import OpenAI
-from trulens.apps.langchain import TruChain
+# from trulens.core import Feedback
+# from trulens.providers.openai import OpenAI
+# from trulens.apps.langchain import TruChain
+from scoring import scoring_prompt
 
 
 
 load_dotenv()
 
-provider = OpenAI()
+# provider = OpenAI()
 
 
 
@@ -67,7 +68,7 @@ class CompanyInfo(BaseModel):
     expectations_from_investor: str
     primary_contact_first_name: str
     primary_contact_last_name: str
-    primary_contact_email: EmailStr
+    primary_contact_email: str
     primary_contact_phone: str
     pitch_deck_link: HttpUrl
     product_demo_video: Optional[HttpUrl]
@@ -112,6 +113,31 @@ async def submit_company_info(info: CompanyInfo, company_id: int):
 
 @app.post("/api_details/{company_id}")
 async def founder_summary(company_id: int):
+
+    table_data = '''
+Topic,What is being assessed/evaluated,1 Point,2 Points,3 Points,4 Points,5 Points
+Founder Background,How long have you been in the industry?,0 - 1 years,1 - 2 years,2 - 3 years,3 - 5 years,5 + years
+Team Coachability,Do they have a mentor that supports them across this journey,No,,,,Yes
+Founder Dynamics,How long have the founders worked together?,0 - 1 years,1 - 2 years,2 - 3 years,3 - 5 years,5+ years
+Founder Dynamics,Do the founders have relevant expertise in the sector they are entering?,0 - 1 years,1 - 2 years,2 - 3 years,3 - 5 years,5+ years
+Founder Dynamics,Are there multiple founders? What is the equity split?,Single Founder,,Two Founders but one founder has over 80% equity,,Multiple Founders - equal equity split
+Commercial Savviness,Can they identify and categorize your direct and indirect competitors?,Unable to identify,Basic identification,Detailed identification,Clear categorization,Strategic insights
+Commercial Savviness,What makes the product or service unique compared to competitors?,No clear USP,Basic USP,Detailed USP,Clear differentiation,Evidence-based USP
+Commercial Savviness,"Do they understand who the customer is?
+ Do they have a well thought out pricing strategy?",No clear understanding of customer and pricing,,Moderately articulate who the customer is and moderately understand competitor pricing. Moderately understand product differentiators. Why pricing works this way,,Clearly articulate who the customer is and clearly understand competitor pricing. Clearly understand product differentiators. Why pricing works this way
+Ability to execute,How is the team uniquely positioned to outperform competitors?,No clear advantage,Basic strengths,Detailed strengths,Relevant experience,Proven track record
+Ability to attract exceptional talent,What is the level of experience of board members in relevant industries?,No experience,Basic experience,Moderate experience,Extensive experience,Extensive experience with proven success
+Ability to attract exceptional talent,What is the level of experience of the senior leadership team in relevant industries?,No experience,Basic experience,Moderate experience,Extensive experience,Extensive experience with proven success
+Ability to attract exceptional talent,How long has the senior leadership team been with the organization?,Less than 1 year,1 - 2 years,2 - 3 years,3 - 5 years,More than 5 years
+Innovation,Does the business have IP,No patents,1-2 patents,3-5 patents,6-10 patents,10+ patents
+Market Opportunity,Can this be a $1B company within 7 years?,NO,,,,Yes
+Traction & Funding,Does the business have traction?,No,`,Interest / LOIs,,Revenue
+Traction & Funding,Run Rate of the raise and how long will it last,3 months,6 months,12 months,18 months +,Not needed again
+Ability to execute,DO the founders have a track record of execution? And have they proven this already at the current business?,No track record,,Strong track record but yet to prove at the current business,,Strong track record and strong growth in the current business
+Purpose,What did they give up to come here? Are they full time here? Have they deployed their own capital?,Part Time/ only 3rd party capital,,Deployed Capital/ Part time or No Capital deployed/ Full Time,,"Deployed own capital, full time employed at the current venture"
+
+
+'''
     # Check if the company_id exists in the global company data
     if company_id not in company:
         raise HTTPException(status_code=404, detail="Company not found")
@@ -174,10 +200,10 @@ async def founder_summary(company_id: int):
     # Create an instance of LLMChain and invoke it with the input JSON
     llm_chain = LLMChain(prompt=founder_template, llm=llm)
     response =  llm_chain.invoke(input_json)
-    f_answer_relevance = Feedback(
-    provider.relevance_with_cot_reasons, name="Answer Relevance").on_input_output()
+    # f_answer_relevance = Feedback(
+    # provider.relevance_with_cot_reasons, name="Answer Relevance").on_input_output()
 
-    print(f_answer_relevance)
+    # print(f_answer_relevance)
 
     
     founder_dynamics_chain = LLMChain(prompt = founder_dynamics_template, llm=llm)
@@ -189,12 +215,22 @@ async def founder_summary(company_id: int):
     concerns_chain = LLMChain(prompt = concerns_template, llm=llm)
     response5 =  concerns_chain.invoke(input_json)
 
+    try:
+        updated_json = input_json.copy()
+        updated_json.update({"table_data": table_data})
+        scoring_chain = LLMChain(prompt=scoring_prompt, llm=llm)
+        response6 = scoring_chain.invoke(input_json)
+        print(response6['text'])
+    except Exception as e:
+        print(e)
+        # return {"message": "Error in creating scoring chain"}
+
     # Return the processed message
-    return {"founder_summary": response['text'], "founder_dynamics": response2['text'], "talking_points_marketopp": response3['text'], "talking_points_coach": response4['text'], "concerns": response5['text']}
+    return {"founder_summary": response['text'], "founder_dynamics": response2['text'], "talking_points_marketopp": response3['text'], "talking_points_coach": response4['text'], "concerns": response5['text'], "scoring": response6['text']}
 
 
 
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host="0.0.0.0", port= int(os.environ.get('PORT', 8080)))
