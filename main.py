@@ -101,7 +101,7 @@ company = {}
 
 
 
-@app.post("/submit-company-info/<int:company_id>")
+@app.post("/submit-company-info/")
 async def submit_company_info(info: CompanyInfo, company_id: int):
     print("data submitted")
     global company
