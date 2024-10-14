@@ -112,24 +112,77 @@ def read_root():
 def process_company_data(company_data: dict, row_id: str, submission_id: str):
     input_json = company_data
 
+    # Send webhook notification
+    webhook_url = os.environ.get('WEBHOOK_URL', 'https://webhook.site/c28523bf-7fc0-4ad9-afbb-cd476a82057d')
+
     # Process data using LLMChain
     llm_chain = LLMChain(prompt=founder_template, llm=llm)
     response = llm_chain.invoke(input_json)
+    
+
+    requests.post(webhook_url, json={
+        "row_id": row_id,
+        "submission_id": submission_id,
+        "status": "completed",
+        "result":  response['text'],
+        "type": 'FOUNDER_SUMMARY'
+    })
 
     founder_dynamics_chain = LLMChain(prompt=founder_dynamics_template, llm=llm)
     response2 = founder_dynamics_chain.invoke(input_json)
 
+    requests.post(webhook_url, json={
+        "row_id": row_id,
+        "submission_id": submission_id,
+        "status": "completed",
+        "result":  response2['text'],
+        "type": 'FOUNDER_DYNAMICS'
+    })
+
     talking_points_marketopp_chain = LLMChain(prompt=talking_points_marketopp_template, llm=llm)
     response3 = talking_points_marketopp_chain.invoke(input_json)
 
+    requests.post(webhook_url, json={
+        "row_id": row_id,
+        "submission_id": submission_id,
+        "status": "completed",
+        "result":  response3['text'],
+        "type": 'TALKING_MARKETOPP'
+    })
+
     talking_points_coach_chain = LLMChain(prompt=talking_points_coach_template, llm=llm)
     response4 = talking_points_coach_chain.invoke(input_json)
+    
+
+    requests.post(webhook_url, json={
+        "row_id": row_id,
+        "submission_id": submission_id,
+        "status": "completed",
+        "result":  response4['text'],
+        "type": 'TALKING_COACH'
+    })
 
     concerns_chain = LLMChain(prompt=concerns_template, llm=llm)
     response5 = concerns_chain.invoke(input_json)
 
+    requests.post(webhook_url, json={
+        "row_id": row_id,
+        "submission_id": submission_id,
+        "status": "completed",
+        "result":  response5['text'],
+        "type": 'CONCERNS'
+    })
+
     scoring_chain = LLMChain(prompt=scoring_prompt, llm=llm)
     response6 = scoring_chain.invoke(input_json)
+
+    requests.post(webhook_url, json={
+        "row_id": row_id,
+        "submission_id": submission_id,
+        "status": "completed",
+        "result":  response6['text'],
+        "type": 'SCORING'
+    })
 
     result = {
         "founder_summary": response['text'],
@@ -140,8 +193,7 @@ def process_company_data(company_data: dict, row_id: str, submission_id: str):
         "scoring": response6['text']
     }
 
-    # Send webhook notification
-    webhook_url = os.environ.get('WEBHOOK_URL', 'https://webhook.site/c28523bf-7fc0-4ad9-afbb-cd476a82057d')
+    
     requests.post(webhook_url, json={
         "row_id": row_id,
         "submission_id": submission_id,
@@ -169,8 +221,8 @@ async def submit_and_process_company(
     return {"message": "Company info submitted and processing started", "task_id": task.id}
 
 @app.get("/task-status/{task_id}")
-async def get_task_status(task_id: str, api_key: str = Header(...)):
-    validate_api_key(api_key)
+async def get_task_status(task_id: str):#, api_key: str = Header(...)):
+    # validate_api_key(api_key)
     task_result = AsyncResult(task_id)
     return {
         "task_id": task_id,
