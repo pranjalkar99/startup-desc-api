@@ -1,5 +1,6 @@
 # main.py
-from fastapi import FastAPI, HTTPException, Header
+from fastapi import FastAPI, HTTPException, Header, BackgroundTasks
+from fastapi import Header
 from typing import List, Optional
 from pydantic import BaseModel, HttpUrl
 from prompt import founder_template, founder_dynamics_template, talking_points_marketopp_template, talking_points_coach_template, concerns_template
@@ -51,7 +52,7 @@ class CompanyInfo(BaseModel):
     Company: str
     legal_name: str
     description: str
-    website: HttpUrl
+    website: str
     product_launched: str
     launch_date: Optional[str]
     industry_sector: str
@@ -82,15 +83,15 @@ class CompanyInfo(BaseModel):
     full_time_employees: int
     part_time_employees: int
     co_founders: List[str]
-    co_founders_linkedin: List[HttpUrl]
+    co_founders_linkedin: List[str]
     founder_story: str
     expectations_from_investor: str
     primary_contact_first_name: str
     primary_contact_last_name: str
     primary_contact_email: str
     primary_contact_phone: str
-    pitch_deck_link: HttpUrl
-    product_demo_video: Optional[HttpUrl]
+    pitch_deck_link: str
+    product_demo_video: Optional[str]
     fundraising_amount: str
     company_valuation: str
     equity_split: str
@@ -140,7 +141,7 @@ def process_company_data(company_data: dict, row_id: str, submission_id: str):
     }
 
     # Send webhook notification
-    webhook_url = os.environ.get('WEBHOOK_URL', 'https://example.com/webhook')
+    webhook_url = os.environ.get('WEBHOOK_URL', 'https://webhook.site/c28523bf-7fc0-4ad9-afbb-cd476a82057d')
     requests.post(webhook_url, json={
         "row_id": row_id,
         "submission_id": submission_id,
@@ -155,9 +156,9 @@ async def submit_and_process_company(
     info: CompanyInfo,
     row_id: str,
     submission_id: str,
-    api_key: str = Header(...)
+    # api_key: str = Header(...)
 ):
-    validate_api_key(api_key)
+    # validate_api_key(api_key)
 
     # Convert CompanyInfo to dict
     company_data = info.dict()
@@ -194,3 +195,8 @@ app.autodiscover_tasks(['run'])
 
 # To run Flower for monitoring:
 # celery -A celery_worker flower
+
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=int(os.environ.get('PORT', 8080)))
