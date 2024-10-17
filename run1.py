@@ -6,7 +6,7 @@ from pydantic import BaseModel, HttpUrl
 from prompt import founder_template, founder_dynamics_template, talking_points_marketopp_template, talking_points_coach_template, concerns_template
 from langchain.chains import LLMChain
 from fastapi.middleware.cors import CORSMiddleware
-from celery import Celery
+from celery import Celery, current_task
 from celery.result import AsyncResult
 
 import os
@@ -14,7 +14,8 @@ import requests
 from dotenv import load_dotenv
 from langchain_openai import ChatOpenAI
 
-from scoring import scoring_prompt
+# from scoring import scoring_prompt
+from dynamic_scoring import *
 
 load_dotenv()
 
@@ -109,8 +110,9 @@ def read_root():
     return {"message": "Hello, FastAPI with Celery! Go to /docs for API documentation."}
 
 @celery_app.task(name="process_company_data")
-def process_company_data(company_data: dict, row_id: str, submission_id: str):
+def process_company_data(company_data: dict, row_id: str, submission_id: str, table_data: str):
     input_json = company_data
+    task_id = current_task.request.id
 
     # Send webhook notification
     webhook_url = os.environ.get('WEBHOOK_URL', 'https://webhook.site/c28523bf-7fc0-4ad9-afbb-cd476a82057d')
@@ -125,7 +127,8 @@ def process_company_data(company_data: dict, row_id: str, submission_id: str):
         "submission_id": submission_id,
         "status": "completed",
         "result":  response['text'],
-        "type": 'FOUNDER_SUMMARY'
+        "type": 'FOUNDER_SUMMARY',
+        "task_id": task_id
     })
 
     founder_dynamics_chain = LLMChain(prompt=founder_dynamics_template, llm=llm)
@@ -136,7 +139,8 @@ def process_company_data(company_data: dict, row_id: str, submission_id: str):
         "submission_id": submission_id,
         "status": "completed",
         "result":  response2['text'],
-        "type": 'FOUNDER_DYNAMICS'
+        "type": 'FOUNDER_DYNAMICS',
+        "task_id": task_id
     })
 
     talking_points_marketopp_chain = LLMChain(prompt=talking_points_marketopp_template, llm=llm)
@@ -147,7 +151,8 @@ def process_company_data(company_data: dict, row_id: str, submission_id: str):
         "submission_id": submission_id,
         "status": "completed",
         "result":  response3['text'],
-        "type": 'TALKING_MARKETOPP'
+        "type": 'TALKING_MARKETOPP',
+        "task_id": task_id
     })
 
     talking_points_coach_chain = LLMChain(prompt=talking_points_coach_template, llm=llm)
@@ -159,7 +164,8 @@ def process_company_data(company_data: dict, row_id: str, submission_id: str):
         "submission_id": submission_id,
         "status": "completed",
         "result":  response4['text'],
-        "type": 'TALKING_COACH'
+        "type": 'TALKING_COACH',
+        "task_id": task_id
     })
 
     concerns_chain = LLMChain(prompt=concerns_template, llm=llm)
@@ -170,10 +176,28 @@ def process_company_data(company_data: dict, row_id: str, submission_id: str):
         "submission_id": submission_id,
         "status": "completed",
         "result":  response5['text'],
-        "type": 'CONCERNS'
+        "type": 'CONCERNS',
+        "task_id": task_id
     })
+    input_json['table_data'] = generate_conditions(table_data)
 
-    scoring_chain = LLMChain(prompt=scoring_prompt, llm=llm)
+    output_class = generate_scoring_output(table_data)
+    parser = JsonOutputParser(pydantic_object=output_class)
+    
+    dynamic_scoring_prompt = PromptTemplate(
+        template=scoring_q,
+        input_variables=[
+            "Company", "legal_name", "founding_team", "problem_addressed", "industry_sector",
+            "headquarters_location", "incorporation_location", "product_launched", "launch_date",
+            "competitors", "unique_value_proposition", "target_customer_location", "go_to_market_channels",
+            "revenue_last_six_months", "ebitda_last_six_months", "cash_balance", "monthly_burn_rate",
+            "team_wins", "prior_funding_experience", "fundraising_amount", "company_valuation", 
+            "execution_vision_team", "table_data"
+        ],
+        partial_variables={"format_instructions": parser.get_format_instructions()},
+    )
+
+    scoring_chain = LLMChain(prompt=dynamic_scoring_prompt, llm=llm)
     response6 = scoring_chain.invoke(input_json)
 
     requests.post(webhook_url, json={
@@ -181,7 +205,8 @@ def process_company_data(company_data: dict, row_id: str, submission_id: str):
         "submission_id": submission_id,
         "status": "completed",
         "result":  response6['text'],
-        "type": 'SCORING'
+        "type": 'SCORING',
+        "task_id": task_id
     })
 
     result = {
@@ -194,18 +219,19 @@ def process_company_data(company_data: dict, row_id: str, submission_id: str):
     }
 
     
-    requests.post(webhook_url, json={
-        "row_id": row_id,
-        "submission_id": submission_id,
-        "status": "completed",
-        "result": result
-    })
+    # requests.post(webhook_url, json={
+    #     "row_id": row_id,
+    #     "submission_id": submission_id,
+    #     "status": "completed",
+    #     "result": result
+    # })
 
     return result
 
 @app.post("/submit-and-process-company")
 async def submit_and_process_company(
     info: CompanyInfo,
+    table_data: str,
     row_id: str,
     submission_id: str,
     # api_key: str = Header(...)
@@ -216,7 +242,7 @@ async def submit_and_process_company(
     company_data = info.dict()
 
     # Queue the task for processing
-    task = process_company_data.delay(company_data, row_id, submission_id)
+    task = process_company_data.delay(company_data, row_id, submission_id, table_data)
 
     return {"message": "Company info submitted and processing started", "task_id": task.id}
 
