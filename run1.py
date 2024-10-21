@@ -43,7 +43,7 @@ app.add_middleware(
 
 # OpenAI configuration
 os.environ['OPENAI_API_KEY'] = os.environ.get('OPENAI_API_KEY')
-llm = ChatOpenAI(model="gpt-4-0613")
+llm = ChatOpenAI(model="gpt-4o-mini")
 
 # API Key (replace with a more secure method in production)
 API_KEY = os.environ.get('API_KEY', 'your-api-key')
@@ -107,6 +107,9 @@ class TableData(BaseModel):
     three_point: str
     four_point: str
     five_point: str
+
+class TableDataList(BaseModel):
+    tables: List[TableData]
 
 # Helper function to validate API key
 def validate_api_key(api_key: str = Header(...)):
@@ -188,6 +191,7 @@ def process_company_data(company_data: dict, row_id: str, submission_id: str, ta
         "type": 'CONCERNS',
         "task_id": task_id
     })
+
     input_json['table_data'] = generate_conditions(table_data)
 
     output_class = generate_scoring_output(table_data)
@@ -234,13 +238,13 @@ def process_company_data(company_data: dict, row_id: str, submission_id: str, ta
     #     "status": "completed",
     #     "result": result
     # })
-
+    # return "Completed"
     return result
 
 @app.post("/submit-and-process-company")
 async def submit_and_process_company(
     info: CompanyInfo,
-    table_data: TableData,
+    table_data: TableDataList,
     row_id: str,
     submission_id: str,
     # api_key: str = Header(...)
@@ -251,7 +255,7 @@ async def submit_and_process_company(
     company_data = info.dict()
 
     # Queue the task for processing
-    task = process_company_data.delay(company_data, row_id, submission_id, table_data)
+    task = process_company_data.delay(company_data, row_id, submission_id, table_data.dict())
 
     return {"message": "Company info submitted and processing started", "task_id": task.id}
 

@@ -4,6 +4,21 @@ from langchain_core.output_parsers import JsonOutputParser
 from langchain_core.prompts import PromptTemplate
 import json
 
+import json
+
+from typing import List, Dict
+
+class TableData(BaseModel):
+    topic: str
+    assessment: str
+    one_point: str
+    two_point: str
+    three_point: str
+    four_point: str
+    five_point: str
+
+class TableDataList(BaseModel):
+    tables: List[TableData]
 
 class EvaluationCriteria(BaseModel):
     question: str
@@ -27,88 +42,78 @@ def create_dynamic_model(field_data: Dict[str, Any]) -> Any:
     
     return create_model('DynamicScoringModel', **dynamic_model_fields)
 
-
-def parse_table_data(table_data: dict) -> Dict[str, Any]:
+def parse_table_data(table_data_list: TableDataList) -> Dict[str, Any]:
     """
-    Parse the JSON string table data and create a dynamic dictionary of topics and criteria.
-    The keys will represent unique topics, and values will be lists of EvaluationCriteria or single criteria.
+    Parses a list of TableData objects into a dictionary of dynamic fields
+    based on topics and evaluation criteria.
 
     Args:
-        table_data (str): A JSON string representing the table data.
+        table_data_list (TableDataList): A list of TableData objects.
 
     Returns:
-        Dict[str, Any]: A dictionary with topic names as keys and corresponding evaluation criteria.
+        Dict[str, Any]: A dictionary with topics as keys and dynamic field definitions.
     """
-    
-    try:
-        rows = json.loads(table_data)
-    except json.JSONDecodeError:
-        raise ValueError("Invalid JSON string provided for table_data")
 
     topics = {}
-    for row in rows:
-        
-        topic = row.get('Topic')  
-        question = row.get('What is being assessed/evaluated')
-        points = [row.get(key) for key in row if "Point" in key]  
 
-        
+    # Iterate through the list of TableData objects
+    for row in table_data_list['tables']:
+        topic = row['topic']  # Extract the topic
+        question = row['assessment']  # Extract the assessment question
+        points = [row['one_point'], row['two_point'], row['three_point'], row['four_point'], row['five_point']]  # Extract known point keys
+ # Extract points
+
+        # Clean up points, removing empty ones
         points = [p.strip() for p in points if p.strip()]
 
-        
+        # Create an EvaluationCriteria object for this row
         evaluation = EvaluationCriteria(
             question=question,
             options=points,
-            scores=list(range(1, len(points) + 1))  
+            scores=list(range(1, len(points) + 1))  # Score points from 1 to N
         )
 
-        
+        # Group evaluations by topic
         if topic in topics:
             topics[topic].append(evaluation)
         else:
             topics[topic] = [evaluation]
 
-    
+    # Generate dynamic fields for each topic
     dynamic_fields = {}
     for topic, criteria in topics.items():
-        
-        field_name = topic.replace(" ", "_")  
+        field_name = topic.replace(" ", "_")  # Convert topic to a valid field name
         if len(criteria) > 1:
+            # If there are multiple criteria for a topic, use a list
             dynamic_fields[field_name] = (List[EvaluationCriteria], Field(description=f"Criteria for {topic}"))
         else:
+            # If only one criterion, use a single EvaluationCriteria
             dynamic_fields[field_name] = (EvaluationCriteria, Field(description=f"Criteria for {topic}"))
 
     return dynamic_fields
 
-import json
 
-def generate_conditions(table_data: dict) -> str:
+def generate_conditions(table_data_list: TableDataList) -> str:
     """
-    Generate conditions from a JSON string representing table data.
+    Generate conditions from a list of TableData objects.
 
     Args:
-        table_data (str): A JSON string containing the table data.
+        table_data_list (TableDataList): A list containing the table data.
 
     Returns:
         str: A formatted string containing the conditions.
     """
-    # Parse the JSON string into a Python object
-    try:
-        rows = json.loads(table_data)
-    except json.JSONDecodeError as e:
-        return f"Error parsing JSON: {e}"
 
     conditions_str = ""
+    print(table_data_list)
 
-    # Iterate over each row in the parsed JSON
-    for row in rows:
-        topic = row.get("topic")
-        evaluation = row.get("assessment")
-        points = [row.get(key) for key in row if "point" in key]  # Extract all point values
+    # Iterate over each TableData object in the list
+    for row in table_data_list['tables']:
+        points = [row['one_point'], row['two_point'], row['three_point'], row['four_point'], row['five_point']]  # Extract known point keys
 
         # Create a condition block for the current row
-        if topic and evaluation:  # Ensure both topic and evaluation are present
-            condition_block = f"## {topic} - {evaluation.strip()} ##\n"
+        if row['topic'] and row['assessment']:  # Ensure both topic and assessment are present
+            condition_block = f"## {row['topic']} - {row['assessment'].strip()} ##\n"
 
             for i, point in enumerate(points):
                 if point and point.strip():  # Only include non-empty points
@@ -117,6 +122,7 @@ def generate_conditions(table_data: dict) -> str:
             conditions_str += condition_block + "\n"
 
     return conditions_str
+
 
 
 def generate_scoring_output(table_data: dict) -> Dict[str, Any]:

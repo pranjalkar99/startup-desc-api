@@ -64,7 +64,15 @@ Summary:
 
 Financially, while the company reported {revenue_last_six_months} in revenue and {ebitda_last_six_months} EBITDA over the last six months, there are concerns over the monthly burn rate of {monthly_burn_rate} and the sustainability of their cash balance ({cash_balance}). Their goal of raising {fundraising_amount} at a valuation of {company_valuation} will be crucial to maintaining growth. With {full_time_employees} full-time and {part_time_employees} part-time employees, the team’s ability to execute effectively will be vital. The company's previous wins ({team_wins}) and the leadership of the founding team {founding_team} offer hope, but challenges in competition and resource management remain key concerns.
 
+Remember to provide output in this Output Structure:  
+- <b>Product and Market Validation Stage</b> 
+    1 Paraph description
+- <b>Limited Financial Runway</b>  
+1 Paraph description
+- <b>Small Team Size</b>
+1 Paraph description
 """
+
 
 
 
