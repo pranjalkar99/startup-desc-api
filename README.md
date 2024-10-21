@@ -11,19 +11,27 @@ Ensure you have the following installed:
 - Python 3.x
 - pip (Python package installer)
 - Docker (for production setup)
+- Docker Compose
 
 ### Running Locally
 
+
+
+Main file: run1.py
 To run the project locally, follow these steps:
 
 1. Install the required dependencies:
     ```sh
     pip install -r requirements.txt
     ```
+2. Add a .env file:
+    OPENAI_API_KEY=''
+    API_KEY='12345'
+    WEBHOOK_URL=''
 
-2. Start the application:
+3. Start the application:
     ```sh
-    python main.py
+    docker-compose up --build
     ```
 
 ### Setting Up Docker for Production

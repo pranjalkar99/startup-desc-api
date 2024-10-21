@@ -5,6 +5,11 @@ from pydantic import BaseModel, HttpUrl
 from prompt import founder_template,founder_dynamics_template, talking_points_marketopp_template,talking_points_coach_template, concerns_template
 from langchain.chains import LLMChain
 from fastapi.middleware.cors import CORSMiddleware
+from celery import Celery
+from celery.result import AsyncResult
+
+import requests
+
 
 import os
 from dotenv import load_dotenv
@@ -27,6 +32,18 @@ load_dotenv()
 os.environ['OPENAI_API_KEY'] = os.environ.get('OPENAI_API_KEY')
 
 llm = ChatOpenAI(model="gpt-4o-mini")
+
+API_KEY = os.environ.get('API_KEY', 'your-api-key')
+
+celery_app = Celery('tasks', broker='redis://redis:6379/0', backend='redis://redis:6379/0')
+celery_app.conf.update(
+    task_serializer='json',
+    accept_content=['json'],
+    result_serializer='json',
+    timezone='UTC',
+    enable_utc=True,
+)
+
 
 class CompanyInfo(BaseModel):
     Company: str
@@ -92,7 +109,10 @@ app.add_middleware(
 def read_root():
     return {"message": "Hello, FastAPI in Docker! Go to /docs."}
 
-
+def validate_api_key(api_key: str = Header(...)):
+    if api_key != API_KEY:
+        raise HTTPException(status_code=403, detail="Invalid API key")
+    return api_key
 
 
 company = {}
@@ -112,7 +132,9 @@ async def submit_company_info(info: CompanyInfo, company_id: int):
 
 
 @app.post("/api_details/{company_id}")
-async def founder_summary(company_id: int):
+async def founder_summary(row_id: str, submission_id: str, info: CompanyInfo):
+
+
 
     table_data = '''
 Topic,What is being assessed/evaluated,1 Point,2 Points,3 Points,4 Points,5 Points

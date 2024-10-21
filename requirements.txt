@@ -8,6 +8,9 @@ requests
 langchain-community
 pydantic
 pydantic-core
+celery
+redis
+flower
 # Hallucination check (DEV Package)
 # trulens
 # trulens-apps-langchain
