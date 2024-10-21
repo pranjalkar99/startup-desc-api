@@ -28,7 +28,7 @@ def create_dynamic_model(field_data: Dict[str, Any]) -> Any:
     return create_model('DynamicScoringModel', **dynamic_model_fields)
 
 
-def parse_table_data(table_data: str) -> Dict[str, Any]:
+def parse_table_data(table_data: dict) -> Dict[str, Any]:
     """
     Parse the JSON string table data and create a dynamic dictionary of topics and criteria.
     The keys will represent unique topics, and values will be lists of EvaluationCriteria or single criteria.
@@ -82,7 +82,7 @@ def parse_table_data(table_data: str) -> Dict[str, Any]:
 
 import json
 
-def generate_conditions(table_data: str) -> str:
+def generate_conditions(table_data: dict) -> str:
     """
     Generate conditions from a JSON string representing table data.
 
@@ -102,9 +102,9 @@ def generate_conditions(table_data: str) -> str:
 
     # Iterate over each row in the parsed JSON
     for row in rows:
-        topic = row.get("Topic")
-        evaluation = row.get("What is being assessed/evaluated")
-        points = [row.get(key) for key in row if "Point" in key]  # Extract all point values
+        topic = row.get("topic")
+        evaluation = row.get("assessment")
+        points = [row.get(key) for key in row if "point" in key]  # Extract all point values
 
         # Create a condition block for the current row
         if topic and evaluation:  # Ensure both topic and evaluation are present
@@ -119,7 +119,7 @@ def generate_conditions(table_data: str) -> str:
     return conditions_str
 
 
-def generate_scoring_output(table_data: str) -> Dict[str, Any]:
+def generate_scoring_output(table_data: dict) -> Dict[str, Any]:
     
     dynamic_fields = parse_table_data(table_data)
 

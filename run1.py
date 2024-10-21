@@ -99,6 +99,15 @@ class CompanyInfo(BaseModel):
     funding_commitments: Optional[str]
     business_stage: str
 
+class TableData(BaseModel):
+    topic: str
+    assessment: str
+    one_point: str
+    two_point: str
+    three_point: str
+    four_point: str
+    five_point: str
+
 # Helper function to validate API key
 def validate_api_key(api_key: str = Header(...)):
     if api_key != API_KEY:
@@ -110,7 +119,7 @@ def read_root():
     return {"message": "Hello, FastAPI with Celery! Go to /docs for API documentation."}
 
 @celery_app.task(name="process_company_data")
-def process_company_data(company_data: dict, row_id: str, submission_id: str, table_data: str):
+def process_company_data(company_data: dict, row_id: str, submission_id: str, table_data: dict):
     input_json = company_data
     task_id = current_task.request.id
 
@@ -231,7 +240,7 @@ def process_company_data(company_data: dict, row_id: str, submission_id: str, ta
 @app.post("/submit-and-process-company")
 async def submit_and_process_company(
     info: CompanyInfo,
-    table_data: str,
+    table_data: TableData,
     row_id: str,
     submission_id: str,
     # api_key: str = Header(...)
