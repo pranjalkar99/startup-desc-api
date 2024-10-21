@@ -22,7 +22,7 @@ class QuestionMapping(BaseModel):
     questionId: str
     mappedField: str
     confidence: float
-    field_index: int
+    field_index: Optional[int]
 
 class ResponseBody(BaseModel):
     mappings: List[QuestionMapping]
@@ -65,43 +65,49 @@ Response:""",
 
 @app.post("/map-questions", response_model=ResponseBody)
 async def map_questions(request: RequestBody):
-    # Extract all available fields from the request
-    if not request.csvData or not request.csvData[0]:
-        raise HTTPException(status_code=400, detail="CSV data is empty or invalid")
-    
-    available_fields = request.csvData
-
-    mappings = []
-    
-    for question in request.investmentProfileQuestions:
-        # Format the prompt with the current question and available fields
-        prompt = prompt_template.format(
-            question=question.question,
-            fields="\n".join(available_fields)  # Join the fields with newlines for better readability
-        )
-
-        # Call the LLM with the generated prompt
-        response = llm.predict(prompt)
-
-        # Parse the LLM response as JSON
-        try:
-            result = json.loads(response)
-        except json.JSONDecodeError:
-            raise HTTPException(status_code=500, detail="Failed to parse LLM response")
-
-
+    try:
+        # Extract all available fields from the request
+        if not request.csvData or not request.csvData[0]:
+            raise HTTPException(status_code=400, detail="CSV data is empty or invalid")
         
+        available_fields = request.csvData
 
-        # Create the mapping
-        mapping = QuestionMapping(
-            questionId=question.questionId,
-            mappedField=result.get("mappedField", ""),  # Default to empty string if not provided
-            confidence=result.get("confidence", 0.0),  # Default to 0.0 if not provided
-            field_index = available_fields.index(result.get("mappedField", "")) if result.get("mappedField", "") in available_fields else None
-        )
-        mappings.append(mapping)
+        mappings = []
+        
+        for question in request.investmentProfileQuestions:
+            # Format the prompt with the current question and available fields
+            prompt = prompt_template.format(
+                question=question.question,
+                fields="\n".join(available_fields)  # Join the fields with newlines for better readability
+            )
 
-    return ResponseBody(mappings=mappings)
+            # Call the LLM with the generated prompt
+            response = llm.predict(prompt)
+
+            # Parse the LLM response as JSON
+            response = response.replace("json","").replace("```", "")
+            # print("response: ", type(response))
+            # remove the word json from the response
+            try:
+                result = json.loads(response)
+                print("result : ", result)
+            except json.JSONDecodeError:
+                raise HTTPException(status_code=500, detail="Failed to parse LLM response")
+
+            # Create the mapping
+            mapping = QuestionMapping(
+                questionId=question.questionId,
+                mappedField=result.get("mappedField", ""),  # Default to empty string if not provided
+                confidence=result.get("confidence", 0.0),  # Default to 0.0 if not provided
+                field_index = available_fields.index(result.get("mappedField", "")) if result.get("mappedField", "") in available_fields else None
+            )
+            print("mapping : ", mapping)
+            mappings.append(mapping)
+
+        return ResponseBody(mappings=mappings)
+    except Exception as e:
+        print(e)
+        raise HTTPException(status_code=500, detail=str(e))
 
 # Example usage
 if __name__ == "__main__":
