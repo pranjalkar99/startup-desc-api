@@ -5,7 +5,7 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "run": "node prompt.js"
+    "run": "node main.js"
   },
   "author": "pranjalkar99",
   "license": "ISC",

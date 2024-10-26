@@ -1,8 +1,8 @@
 
-import { StringOutputParser } from "@langchain/core/output_parsers";
+import { StringOutputParser, JsonOutputParser } from "@langchain/core/output_parsers";
 import { ChatOpenAI } from "@langchain/openai";
-import { founderSummaryPrompt, founderDynamicsPrompt, talkingpointsMarketoppPrompt, talkingpointsCoachmarketoppPrompt, concernsParagraphPrompt } from "./allPrompts.js"
-
+import { founderSummaryPrompt, founderDynamicsPrompt, talkingpointsMarketoppPrompt, talkingpointsCoachmarketoppPrompt, concernsParagraphPrompt } from "./allPrompts.js";
+import {  generateConditions, generateScoringOutput,  scoringQ} from "./dynamicScoring.js";
 async function run() {
 
 
@@ -85,6 +85,65 @@ async function run() {
     };
 
 
+    const table_data = {
+        "tables": [
+            {
+                "topic": "Founder Background",
+                "assessment": "How long have you been in the industry?",
+                "one_point": "0 - 1 years",
+                "two_point": "1 - 2 years",
+                "three_point": "2 - 3 years",
+                "four_point": "3 - 5 years",
+                "five_point": "5 + years"
+            },
+            {
+                "topic": "Team Coachability",
+                "assessment": "Do they have a mentor that supports them across this journey?",
+                "one_point": "No",
+                "two_point": "",
+                "three_point": "",
+                "four_point": "",
+                "five_point": "Yes"
+            },
+            {
+                "topic": "Founder Dynamics",
+                "assessment": "How long have the founders worked together?",
+                "one_point": "0 - 1 years",
+                "two_point": "1 - 2 years",
+                "three_point": "2 - 3 years",
+                "four_point": "3 - 5 years",
+                "five_point": "5+ years"
+            },
+            {
+                "topic": "Founder Dynamics",
+                "assessment": "Do the founders have relevant expertise in the sector they are entering?",
+                "one_point": "0 - 1 years",
+                "two_point": "1 - 2 years",
+                "three_point": "2 - 3 years",
+                "four_point": "3 - 5 years",
+                "five_point": "5+ years"
+            },
+            {
+                "topic": "Founder Dynamics",
+                "assessment": "Are there multiple founders? What is the equity split?",
+                "one_point": "Single Founder",
+                "two_point": "",
+                "three_point": "Two Founders but one founder has over 80% equity",
+                "four_point": "",
+                "five_point": "Multiple Founders - equal equity split"
+            },
+            {
+                "topic": "Commercial Savviness",
+                "assessment": "Can they identify and categorize your direct and indirect competitors?",
+                "one_point": "Unable to identify",
+                "two_point": "Basic identification",
+                "three_point": "Detailed identification",
+                "four_point": "Clear categorization",
+                "five_point": "Strategic insights"
+            }
+        ]
+    }
+
 
 
     const founderSummary = await founderSummarychain.invoke(company_data);
@@ -93,11 +152,26 @@ async function run() {
     const talking_pointsCoachmarketopp = await talking_pointsCoachmarketopp_chain.invoke(company_data);
     const concernsPrompt = await concernsPromptchain.invoke(company_data);
 
+    
+
+
+    company_data["table_data"] = generateConditions(table_data);
+    const output_class = generateScoringOutput(table_data);
+    const parser = new JsonOutputParser(output_class)
+
+    const scoringChain = scoringQ.pipe(llm).pipe(parser);
+
+    const scoringOutput = await scoringChain.invoke(company_data, table_data);
+
+    
     console.log(founderSummary);
     console.log(founderDynamics);
     console.log(talkingpointsMarketopp);
     console.log(talking_pointsCoachmarketopp);
     console.log(concernsPrompt);
+    console.log("scoringOutput:", scoringOutput);
+
+
 
 }
 
