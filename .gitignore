@@ -5,3 +5,8 @@ __pycache__/
 eenv/
 env/
 eeenv/
+node_modules/
+package-lock.json
+.env.development
+.env.local
+.env.production
