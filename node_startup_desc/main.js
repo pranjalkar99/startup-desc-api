@@ -25,7 +25,7 @@ async function run() {
 
     // Get the company data from DB or API
     // Example company data
-    const company_data = {
+    const company_data = `{
         "Company": "Acme Tech Solutions",
         "legal_name": "Acme Tech Solutions Inc.",
         "description": "Acme Tech Solutions is a leading provider of cloud-based AI solutions designed to enhance operational efficiency for enterprises.",
@@ -84,7 +84,7 @@ async function run() {
         "equity_split": "Founders: 65%, Investors: 35%",
         "funding_commitments": "$2,000,000 committed",
         "business_stage": "Series A"
-    };
+    }`;
 
 
     const table_data = {
@@ -232,18 +232,16 @@ async function run() {
 
 
 
-
-    const founderSummary = await founderSummarychain.invoke(company_data);
-    const founderDynamics = await founderDynamicschain.invoke(company_data);
-    const talkingpointsMarketopp = await talkingpointsMarketopp_chain.invoke(company_data);
-    const talking_pointsCoachmarketopp = await talking_pointsCoachmarketopp_chain.invoke(company_data);
-    const concernsPrompt = await concernsPromptchain.invoke(company_data);
+    
+    const founderSummary = await founderSummarychain.invoke({company_data: company_data});
+    const founderDynamics = await founderDynamicschain.invoke({company_data: company_data});
+    const talkingpointsMarketopp = await talkingpointsMarketopp_chain.invoke({company_data: company_data});
+    const talking_pointsCoachmarketopp = await talking_pointsCoachmarketopp_chain.invoke({company_data: company_data});
+    const concernsPrompt = await concernsPromptchain.invoke({company_data: company_data});
 
     
 
     const formattedTAble = generateConditions(table_data);
-    company_data['table_data']= formattedTAble;
-    console.log("formattedTAble:", company_data['table_data']);
     const output_class = generateScoringOutput(table_data);
     console.log("output_class:", output_class);
     const parser = new JsonOutputParser(output_class);
@@ -251,22 +249,16 @@ async function run() {
 
     const scoringChain = scoringQ.pipe(llm).pipe(parser);
 
-    const scoringOutput = await scoringChain.invoke(company_data, formattedTAble);
+    const scoringOutput = await scoringChain.invoke({company_data: company_data, table_data: formattedTAble});
     
-    // const dominantparser = StructuredOutputParser.fromNamesAndDescriptions({
-    //     TraitNum: "number of Trait",
-    //     TraitName: "name of Trait chosen",
-    //     reason: "reason for choosing this trait"
-    //   });
 
-    company_data['traits_list']= transformedDomainatData;
-    const dominantTraitsOutput = await dominantTraitsPrompt.pipe(llm).pipe(new StringOutputParser()).invoke(company_data,transformedDomainatData );
 
-    company_data['investmentProfileQuestions'] = investmentProfileQuestions;
+    const dominantTraitsOutput = await dominantTraitsPrompt.pipe(llm).pipe(new StringOutputParser()).invoke({company_data: company_data,traits_list: transformedDomainatData}); 
+
     const statusChain = statusPrompt.pipe(llm).pipe(new StringOutputParser());
-    const statusOutput = await statusChain.invoke(company_data, investmentProfileQuestions);
+    const statusOutput = await statusChain.invoke({company_data: company_data, investmentProfileQuestions: investmentProfileQuestions});
 
-    
+    console.log("Starting Generation of the output");
     console.log(founderSummary);
     console.log(founderDynamics);
     console.log(talkingpointsMarketopp);
@@ -275,8 +267,6 @@ async function run() {
     console.log("scoringOutput:", scoringOutput);
     console.log("dominantTraitsOutput:", dominantTraitsOutput);
     console.log("statusOutput:", statusOutput);
-
-
 
 }
 
