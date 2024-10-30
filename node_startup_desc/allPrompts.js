@@ -64,10 +64,48 @@ const concernsParagraphPrompt = PromptTemplate.fromTemplate(`
                     Paraph description
 `);
 
+
+
+
+const dominantTraitsPrompt = PromptTemplate.fromTemplate(`
+    You are an expert in psychometric analysis and investor psychology, with years of experience in startups analysis. You've been given a JSON data array containing many traits, each with a trait number, name, and a specific description relevant to performance and decision-making. You also have a company summary that includes its vision, mission, target market, and competitive advantages,etc.
+
+    Ypur task is to analyze the company/startup first critically and then evaluate and analyze the traits in the context of this company's profile. Identify the 3 traits that are likely to resonate most with potential investors, given based entirely on the company's profile. Consider the following factors:
+
+JSON Array of Traits (including trait number, name, and description): {traits_list}
+###
+
+Company Summary: 
+
+{Company}, legally registered as {legal_name}, is focused on addressing {problem_addressed} within the {industry_sector}. The founders, {founding_team}, launched {product_launched} on {launch_date}, aiming to capture {target_customer_location}. They’ve built the company from {headquarters_location}, leveraging a unique value proposition of {unique_value_proposition} to stand out from competitors like {competitors}. The founders, driven by {reason_for_starting_company}, are strategically targeting customers through channels like {go_to_market_channels}. 
+
+    Financial performance in the last six months shows a revenue of {revenue_last_six_months} and EBITDA of {ebitda_last_six_months}, with {total_customers_six_months_ago} customers as of six months ago, including notable clients such as {notable_customers}. With a monthly burn rate of {monthly_burn_rate} and a current cash balance of {cash_balance}, the team is efficiently managing its resources. Their experience with {prior_funding_experience} has enabled them to raise {outside_funding_raised}, positioning them well for future fundraising goals of {fundraising_amount}. Their vision and execution strategy are supported by the team’s achievements like {team_wins} and a clear focus on {execution_vision_team}.
+    ###
+
+Analyze carefully and inspect the traits that would be most appealing to investors based on the company's profile. For example, ypu can Consider the following criterias:
+
+    Alignment with Company Vision and Mission: Which traits reflect qualities that directly support the company's long-term objectives, making it more attractive to investors with a growth-oriented mindset? (Use context from the given company summary ANalysis)
+
+    Market Positioning: Which traits strengthen the company's ability to differentiate itself in the market, highlighting unique attributes or decision-making skills that enhance investor confidence? (Use context from the given company summary ANalysis)
+
+    Risk and Stability: Which traits suggest an ability to manage risk effectively, adapt to changes, and make intuitive yet reliable decisions under uncertainty?  (Use context from the given company summary ANalysis)
+
+Please return the TraitNum, names and reason of the top 3 traits you identify, the reason must be a brief explanation of why each trait would be advantageous to this particular company's investor appeal, in  JSON output format.MAke sure to follow the format of the output below.
+
+Example Output:
+
+        "TraitNum": "16",
+        "TraitName": "Trait Name 1",
+        "reason": "This trait aligns with the company's vision by..."
+   
+`);
+
+
 export {
     founderSummaryPrompt,
     founderDynamicsPrompt,
     talkingpointsMarketoppPrompt,
     talkingpointsCoachmarketoppPrompt,
-    concernsParagraphPrompt
+    concernsParagraphPrompt,
+    dominantTraitsPrompt
 };

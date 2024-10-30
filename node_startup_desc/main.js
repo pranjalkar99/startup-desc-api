@@ -1,8 +1,10 @@
 
 import { StringOutputParser, JsonOutputParser } from "@langchain/core/output_parsers";
 import { ChatOpenAI } from "@langchain/openai";
-import { founderSummaryPrompt, founderDynamicsPrompt, talkingpointsMarketoppPrompt, talkingpointsCoachmarketoppPrompt, concernsParagraphPrompt } from "./allPrompts.js";
+import { founderSummaryPrompt, founderDynamicsPrompt, talkingpointsMarketoppPrompt, talkingpointsCoachmarketoppPrompt, concernsParagraphPrompt,dominantTraitsPrompt } from "./allPrompts.js";
 import {  generateConditions, generateScoringOutput,  scoringQ} from "./dynamicScoring.js";
+import { transformedDomainatData } from "./xcelManipulations.js";
+import { StructuredOutputParser } from "langchain/output_parsers";
 async function run() {
 
 
@@ -162,9 +164,20 @@ async function run() {
     const parser = new JsonOutputParser(output_class);
     console.log("parser:", parser);
 
-    const scoringChain = scoringQ.pipe(llm).pipe(parser);
+    // const scoringChain = scoringQ.pipe(llm).pipe(parser);
 
-    const scoringOutput = await scoringChain.invoke(company_data, formattedTAble);
+    // const scoringOutput = await scoringChain.invoke(company_data, formattedTAble);
+    
+    // const dominantparser = StructuredOutputParser.fromNamesAndDescriptions({
+    //     TraitNum: "number of Trait",
+    //     TraitName: "name of Trait chosen",
+    //     reason: "reason for choosing this trait"
+    //   });
+
+    company_data['traits_list']= transformedDomainatData;
+    const dominantTraitsOutput = await dominantTraitsPrompt.pipe(llm).pipe(new StringOutputParser()).invoke(company_data,transformedDomainatData );
+
+
 
     
     // console.log(founderSummary);
@@ -172,7 +185,8 @@ async function run() {
     // console.log(talkingpointsMarketopp);
     // console.log(talking_pointsCoachmarketopp);
     // console.log(concernsPrompt);
-    console.log("scoringOutput:", scoringOutput);
+    // console.log("scoringOutput:", scoringOutput);
+    console.log("dominantTraitsOutput:", dominantTraitsOutput);
 
 
 

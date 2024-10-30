@@ -10,3 +10,4 @@ package-lock.json
 .env.development
 .env.local
 .env.production
+*.xlsx

@@ -17,6 +17,7 @@
     "express": "^4.21.1",
     "langchain": "^0.3.2",
     "langsmith": "^0.2.3",
-    "nodemon": "^3.1.7"
+    "nodemon": "^3.1.7",
+    "xlsx": "^0.18.5"
   }
 }
