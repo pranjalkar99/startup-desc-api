@@ -101,11 +101,71 @@ Example Output:
 `);
 
 
+const statusPrompt = PromptTemplate.fromTemplate(`
+    You are tasked with evaluating an startup investment against a dynamic investment profile schema, using both the provided 'investment profile questions' and the summary of the 'company data' context. Your goal is to classify the application based on specific eligibility criteria as either "Accepted," "Rejected," or "Potential."
+
+    To do this, you will need to consider:
+1. The investment profile questions 
+2. The summary of the company's data and context
+
+### Criteria for Classification
+
+1. **Important Questions**:
+   - These questions are marked with an "important" field set to 1.
+   - **Mandatory Matching**: If any important question does not match the applicant's answer exactly, the application should be classified as "Rejected."
+   - **Proceed to Next Step**: If all important questions match, proceed to evaluate the non-important questions.
+
+2. **Non-Important Questions with Fallbacks (Amber)**:
+   - These questions have an "important" field set to 0 and may include a fallback or "amber" question, indicated by an "amber" field set to 1 and a valid "amber_question_id."
+   - **Matching Logic for Non-Important Questions**:
+     - If a non-important question does not match the applicant’s answer but has an associated amber question, proceed to check the amber question.
+     - **Amber Question Matching**:
+         - If the amber question matches while the original non-important question does not, classify the application as "Potential."
+         - If neither the non-important question nor the amber question match, classify the application as "Rejected."
+     - **No Amber Fallback**: If a non-important question does not match and lacks an amber fallback, classify the application as "Rejected."
+
+3. **Final Classification**:
+   - **Accepted**: If all important questions match, and either all non-important questions match or are compensated by matching amber questions, classify as "Accepted."
+   - **Rejected**: If any important question fails to match, or if any non-important question without an amber fallback fails to match, classify as "Rejected."
+   - **Potential**: If any non-important questions are mismatched but compensated by matching amber questions, classify as "Potential."
+
+Now let's review the investment profile questions and company summary, and apply these criteria to classify the application:
+
+
+### Investment Profile Questions and Applicant's Answers
+{investmentProfileQuestions}
+
+### Company Summary
+Company Summary for Reference:
+
+  **Overview**:
+  {Company}, legally registered as {legal_name}, operates in the {industry_sector} sector, tackling {problem_addressed} through its {product_launched}. Since its launch on {launch_date}, the company has targeted {target_customer_location} using {go_to_market_channels}.
+
+  **Financial Performance**:
+  Recent figures reveal a revenue of {revenue_last_six_months} with an EBITDA of {ebitda_last_six_months}, supported by a cash balance of {cash_balance}. However, with a monthly burn rate of {monthly_burn_rate}, the company maintains a focused approach to growth and sustainability.
+
+  **Differentiation & Market Position**:
+  {Company}'s unique value proposition, {unique_value_proposition}, distinguishes it from competitors such as {competitors}. 
+
+  **Leadership & Team**:
+  Led by {co_founders}, the team has driven significant customer acquisition, now totaling {total_customers_six_months_ago}, and established strategic partnerships with notable clients like {notable_customers}. 
+
+  **Fundraising Goals**:
+  After successfully raising {outside_funding_raised}, the company seeks additional funding of {fundraising_amount}, with a valuation of {company_valuation} and an equity split of {equity_split} among founders. The execution strategy, {execution_vision_team}, outlines a clear path to capitalize on upcoming market opportunities.
+
+Okay, now Classify the application based on the above criteria, considering the company’s context. Your final output should be one of the following: "Accepted," "Rejected," or "Potential,", along with a reason for the reasoning based on these criteria.
+The output must be in JSON format,containing these fields shown below.
+status: "Accepted" | "Rejected" | "Potential",
+reason: "Brief explanation of the classification decision."
+`);
+
+
 export {
     founderSummaryPrompt,
     founderDynamicsPrompt,
     talkingpointsMarketoppPrompt,
     talkingpointsCoachmarketoppPrompt,
     concernsParagraphPrompt,
-    dominantTraitsPrompt
+    dominantTraitsPrompt,
+    statusPrompt
 };

@@ -1,7 +1,7 @@
 
 import { StringOutputParser, JsonOutputParser } from "@langchain/core/output_parsers";
 import { ChatOpenAI } from "@langchain/openai";
-import { founderSummaryPrompt, founderDynamicsPrompt, talkingpointsMarketoppPrompt, talkingpointsCoachmarketoppPrompt, concernsParagraphPrompt,dominantTraitsPrompt } from "./allPrompts.js";
+import { founderSummaryPrompt, founderDynamicsPrompt, talkingpointsMarketoppPrompt, talkingpointsCoachmarketoppPrompt, concernsParagraphPrompt,dominantTraitsPrompt, statusPrompt } from "./allPrompts.js";
 import {  generateConditions, generateScoringOutput,  scoringQ} from "./dynamicScoring.js";
 import { transformedDomainatData } from "./xcelManipulations.js";
 import { StructuredOutputParser } from "langchain/output_parsers";
@@ -146,13 +146,98 @@ async function run() {
         ]
     }
 
+    const investmentProfileQuestions = {
+        "investment_profile_questions_and_answers": [
+            {
+                "id": 1,
+                "text": "In which countries do you invest?",
+                "important": 1,
+                "amber": 0,
+                "amber_question_id": null,
+                "answer": [
+                    "USA",
+                    "UK",
+                    "Germany",
+                    "India"
+                ]
+            },
+            {
+                "id": 2,
+                "text": "In which sectors do you invest mainly?",
+                "important": 0,
+                "amber": 0,
+                "amber_question_id": 4,
+                "answer": [
+                    "Software & SaaS",
+                    "Healthcare & Biotech"
+                ]
+            },
+            {
+                "id": 3,
+                "text": "What is your minimum revenue criteria?",
+                "important": 0,
+                "amber": 0,
+                "amber_question_id": 5,
+                "answer": "10000000"
+            },
+            {
+                "id": 4,
+                "text": "Which other sectors might you consider if all other criteria are met?",
+                "important": 0,
+                "amber": 1,
+                "amber_question_id": 2,
+                "answer": [
+                    "Fintech"
+                ]
+            },
+            {
+                "id": 5,
+                "text": "What minimum revenue would you consider if all other criteria are met?",
+                "important": 0,
+                "amber": 1,
+                "amber_question_id": 3,
+                "answer": "5000000"
+            },
+            {
+                "id": 6,
+                "text": "What is your minimum investment amount?",
+                "important": 1,
+                "amber": 0,
+                "amber_question_id": null,
+                "answer": "5000000"
+            },
+            {
+                "id": 7,
+                "text": "What is your maximum investment amount?",
+                "important": 1,
+                "amber": 0,
+                "amber_question_id": null,
+                "answer": "10000000"
+            },
+            {
+                "id": 8,
+                "text": "In which stages do you invest?",
+                "important": 1,
+                "amber": 0,
+                "amber_question_id": null,
+                "answer": [
+                    "Seed",
+                    "Series A",
+                    "Series B"
+                ]
+            }
+        ]
+    } 
 
 
-    // const founderSummary = await founderSummarychain.invoke(company_data);
-    // const founderDynamics = await founderDynamicschain.invoke(company_data);
-    // const talkingpointsMarketopp = await talkingpointsMarketopp_chain.invoke(company_data);
-    // const talking_pointsCoachmarketopp = await talking_pointsCoachmarketopp_chain.invoke(company_data);
-    // const concernsPrompt = await concernsPromptchain.invoke(company_data);
+
+
+
+    const founderSummary = await founderSummarychain.invoke(company_data);
+    const founderDynamics = await founderDynamicschain.invoke(company_data);
+    const talkingpointsMarketopp = await talkingpointsMarketopp_chain.invoke(company_data);
+    const talking_pointsCoachmarketopp = await talking_pointsCoachmarketopp_chain.invoke(company_data);
+    const concernsPrompt = await concernsPromptchain.invoke(company_data);
 
     
 
@@ -164,9 +249,9 @@ async function run() {
     const parser = new JsonOutputParser(output_class);
     console.log("parser:", parser);
 
-    // const scoringChain = scoringQ.pipe(llm).pipe(parser);
+    const scoringChain = scoringQ.pipe(llm).pipe(parser);
 
-    // const scoringOutput = await scoringChain.invoke(company_data, formattedTAble);
+    const scoringOutput = await scoringChain.invoke(company_data, formattedTAble);
     
     // const dominantparser = StructuredOutputParser.fromNamesAndDescriptions({
     //     TraitNum: "number of Trait",
@@ -177,16 +262,19 @@ async function run() {
     company_data['traits_list']= transformedDomainatData;
     const dominantTraitsOutput = await dominantTraitsPrompt.pipe(llm).pipe(new StringOutputParser()).invoke(company_data,transformedDomainatData );
 
-
+    company_data['investmentProfileQuestions'] = investmentProfileQuestions;
+    const statusChain = statusPrompt.pipe(llm).pipe(new StringOutputParser());
+    const statusOutput = await statusChain.invoke(company_data, investmentProfileQuestions);
 
     
-    // console.log(founderSummary);
-    // console.log(founderDynamics);
-    // console.log(talkingpointsMarketopp);
-    // console.log(talking_pointsCoachmarketopp);
-    // console.log(concernsPrompt);
-    // console.log("scoringOutput:", scoringOutput);
+    console.log(founderSummary);
+    console.log(founderDynamics);
+    console.log(talkingpointsMarketopp);
+    console.log(talking_pointsCoachmarketopp);
+    console.log(concernsPrompt);
+    console.log("scoringOutput:", scoringOutput);
     console.log("dominantTraitsOutput:", dominantTraitsOutput);
+    console.log("statusOutput:", statusOutput);
 
 
 
