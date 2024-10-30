@@ -146,29 +146,32 @@ async function run() {
 
 
 
-    const founderSummary = await founderSummarychain.invoke(company_data);
-    const founderDynamics = await founderDynamicschain.invoke(company_data);
-    const talkingpointsMarketopp = await talkingpointsMarketopp_chain.invoke(company_data);
-    const talking_pointsCoachmarketopp = await talking_pointsCoachmarketopp_chain.invoke(company_data);
-    const concernsPrompt = await concernsPromptchain.invoke(company_data);
+    // const founderSummary = await founderSummarychain.invoke(company_data);
+    // const founderDynamics = await founderDynamicschain.invoke(company_data);
+    // const talkingpointsMarketopp = await talkingpointsMarketopp_chain.invoke(company_data);
+    // const talking_pointsCoachmarketopp = await talking_pointsCoachmarketopp_chain.invoke(company_data);
+    // const concernsPrompt = await concernsPromptchain.invoke(company_data);
 
     
 
-
-    company_data["table_data"] = generateConditions(table_data);
+    const formattedTAble = generateConditions(table_data);
+    company_data['table_data']= formattedTAble;
+    console.log("formattedTAble:", company_data['table_data']);
     const output_class = generateScoringOutput(table_data);
-    const parser = new JsonOutputParser(output_class)
+    console.log("output_class:", output_class);
+    const parser = new JsonOutputParser(output_class);
+    console.log("parser:", parser);
 
     const scoringChain = scoringQ.pipe(llm).pipe(parser);
 
-    const scoringOutput = await scoringChain.invoke(company_data, table_data);
+    const scoringOutput = await scoringChain.invoke(company_data, formattedTAble);
 
     
-    console.log(founderSummary);
-    console.log(founderDynamics);
-    console.log(talkingpointsMarketopp);
-    console.log(talking_pointsCoachmarketopp);
-    console.log(concernsPrompt);
+    // console.log(founderSummary);
+    // console.log(founderDynamics);
+    // console.log(talkingpointsMarketopp);
+    // console.log(talking_pointsCoachmarketopp);
+    // console.log(concernsPrompt);
     console.log("scoringOutput:", scoringOutput);
 
 
