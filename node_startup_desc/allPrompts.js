@@ -1,53 +1,73 @@
 import { PromptTemplate } from "@langchain/core/prompts";
 
 const founderSummaryPrompt = PromptTemplate.fromTemplate(`
-    Now, using the responses provided above, generate a two-paragraph summary. Focus on capturing the essence of the business vision, the problem being solved, the founding team's strengths, and their execution strategy. Stick to the facts and do not give opinions.
+   You are a experienced VC/Investor Analayser with yeras of experience in analyzing companies for investment opprtunities.Given the company info below , generate a comprehensive two-paragraph summary. Focus on capturing the essence of the business vision, the problem being solved, the founding team's strengths, and their execution strategy. Stick to the facts and do not give opinions.
     
-    Summary:
+    Company Info:
     
-    {Company}, legally known as {legal_name}, was founded by {founding_team} with the purpose of addressing {problem_addressed} in the {industry_sector}. The company, headquartered in {headquarters_location} and incorporated in {incorporation_location}, successfully launched {product_launched} on {launch_date}. Operating in a competitive landscape with players like {competitors}, their unique value proposition, {unique_value_proposition}, sets them apart. The company's go-to-market strategy focuses on reaching {target_customer_location} via {go_to_market_channels}, aiming to capture a significant share of the market.
-    
-    Financially, {Company} has reported a revenue of {revenue_last_six_months} and EBITDA of {ebitda_last_six_months} over the last six months, supported by a current cash balance of {cash_balance}. Their monthly burn rate of {monthly_burn_rate} indicates disciplined spending. The founding teams experience is further highlighted by {team_wins} and their ability to secure prior funding ({prior_funding_experience}). They seek additional funding to meet their goal of raising {fundraising_amount}, with a company valuation of {company_valuation}. Their execution strategy, {execution_vision_team}, reflects their commitment to growth and scalability.
+   {company_data}
+     Try to follow the format below:
+      Follow these steps to create the summary:
+
+    1. First Paragraph - Company Overview and Market Position:
+       - Begin with company name, legal name, and founding team
+       - State the core problem they're addressing and their industry
+       - Include their location details and product launch information
+       - Describe their competitive positioning and unique value proposition
+       - Explain their go-to-market strategy and target market
+
+    2. Second Paragraph - Financial Position and Future Plans:
+       - Detail their financial performance (revenue, EBITDA)
+       - Include current cash position and burn rate
+       - Highlight founding team's achievements and funding experience
+       - State their fundraising goals and valuation
+       - End with their execution strategy and growth plans
+
+       Key points to remember:
+    - Focus on facts, avoid opinions or evaluative statements
+    - Maintain a professional, objective tone
+    - Present information in a logical, flowing narrative
+    - Ensure all key metrics and data points are accurately represented
+    - Create clear connections between related pieces of information for investment perspectives.
 `);
 
 const founderDynamicsPrompt = PromptTemplate.fromTemplate(`
-    Now, using the responses provided above, generate a two-paragraph summary. Focus on capturing the essence of the business vision, the problem being solved, the founding team's strengths, and their execution strategy. Stick to the facts and do not give opinions.
+    Now, using the responses provided above, generate a two-paragraph summary. Focus on capturing the founder’s journey and what brought them here? What motivated them to set up this business. Was there any moment that motivated them to set up this business? What did they do before setting up this venture? How did the founders know each other? 
 
-    Summary:
+    Company Info:
+    {company_data}
 
-    {Company}, legally registered as {legal_name}, is focused on addressing {problem_addressed} within the {industry_sector}. The founders, {founding_team}, launched {product_launched} on {launch_date}, aiming to capture {target_customer_location}. They’ve built the company from {headquarters_location}, leveraging a unique value proposition of {unique_value_proposition} to stand out from competitors like {competitors}. The founders, driven by {reason_for_starting_company}, are strategically targeting customers through channels like {go_to_market_channels}. 
 
-    Financial performance in the last six months shows a revenue of {revenue_last_six_months} and EBITDA of {ebitda_last_six_months}, with {total_customers_six_months_ago} customers as of six months ago, including notable clients such as {notable_customers}. With a monthly burn rate of {monthly_burn_rate} and a current cash balance of {cash_balance}, the team is efficiently managing its resources. Their experience with {prior_funding_experience} has enabled them to raise {outside_funding_raised}, positioning them well for future fundraising goals of {fundraising_amount}. Their vision and execution strategy are supported by the team’s achievements like {team_wins} and a clear focus on {execution_vision_team}.
-`);
+       Key points to remember:
+    - Focus on facts, avoid opinions or evaluative statements
+    - Maintain a professional, objective tone
+    - Present information in a logical, flowing narrative
+    - Ensure all key metrics and data points are accurately represented
+    - Create clear connections between related pieces of information for investment perspectives.
+
+    `);
 
 const talkingpointsMarketoppPrompt = PromptTemplate.fromTemplate(`
-    Now, using the responses provided above, generate a two-paragraph summary. Focus on capturing the essence of the business vision, the problem being solved, the founding team's strengths, and their execution strategy. Stick to the facts and do not give opinions.
+    Now, using the responses provided above, generate a two-paragraph summary. For the first Paragraph, prepare response in single paragraph by following questions - Do they truly understand the Market Size their business is addressing through a logical response. Do they have a clear unique and defensible business vs their competitors. Do not create a list and prepare a single paragraph - Verify independently the market sizing as well.
+    For second paragraph, Does the team have the necessary skill set in the field they are a founder of through previous work experience. If its a technology driven business, is there a CTO (Chief Technical Office) or someone with technical knowledge. Have the team raised money before in this or previous ventures. Do not create a list and prepare a single paragraph. DO they have a proper plan in place? Do they have a plan to execute the vision?
 
-    Summary:
-
-    {Company}, legally known as {legal_name}, has been making strides in the {industry_sector} by solving {problem_addressed} with their innovative product/service, {product_launched}. Since launching on {launch_date}, the company has targeted {target_customer_location} through {go_to_market_channels}. Their financial performance, with a revenue of {revenue_last_six_months} and EBITDA of {ebitda_last_six_months}, shows steady growth. They differentiate themselves through {unique_value_proposition}, while key competitors include {competitors}.
-
-    The company has a strong financial position with a cash balance of {cash_balance}, though their monthly burn rate of {monthly_burn_rate} reflects ongoing operational costs. The founding team’s leadership, including {co_founders}, has propelled the company forward, driving customer acquisition and growth, including {total_customers_six_months_ago} customers and notable partnerships with {notable_customers}. They have also successfully raised {outside_funding_raised}, and are looking to secure additional investment of {fundraising_amount} at a valuation of {company_valuation}, with {equity_split} equity split among founders. Their execution strategy, {execution_vision_team}, ensures they are well-positioned to seize new market opportunities.
+    Company Info:
+    {company_data}
 `);
 
 const talkingpointsCoachmarketoppPrompt = PromptTemplate.fromTemplate(`
-    Now, using the responses provided above, generate a two-paragraph summary. Focus on capturing the essence of the business vision, the problem being solved, the founding team's strengths, and their execution strategy. Stick to the facts and do not give opinions.
+    Now, using the responses provided above, generate a two-paragraph summary.prepare a response in single paragraph by following questions  - Do they have good mentors around them and do they respect them. Have they responded to failure in a positive way where they have shown growth from it and humility. What sacrifices they made to launch this business?. Do not create a list and prepare a single paragraph.
 
-    Summary:
-
-    {Company}, formally known as {legal_name}, was established to address {problem_addressed} within the {industry_sector}. The founders, {co_founders}, have successfully launched {product_launched} on {launch_date}, from their headquarters in {headquarters_location}. Their strategy revolves around targeting {target_customer_location} through {go_to_market_channels}, differentiating the company from competitors such as {competitors} with their unique value proposition: {unique_value_proposition}. The founders’ decision to create the company stems from {reason_for_starting_company}, and their execution strategy revolves around {execution_vision_team}.
-
-    The company has made significant progress in its financial performance, generating {revenue_last_six_months} in revenue and {ebitda_last_six_months} in EBITDA over the last six months. With a burn rate of {monthly_burn_rate} and a current cash balance of {cash_balance}, they are managing expenses prudently. Their ability to attract notable customers like {notable_customers} has been instrumental in growth. They have raised {outside_funding_raised} and are currently seeking to raise {fundraising_amount}, at a valuation of {company_valuation}, to fuel their next stage of growth. The founders’ past wins, such as {team_wins}, and prior funding experience ({prior_funding_experience}) further demonstrate their readiness for expansion.
+    Company Info:
+    {company_data}
 `);
 
 const concernsParagraphPrompt = PromptTemplate.fromTemplate(`
     Now, using the responses provided above, generate a two-paragraph summary. Focus on capturing the essence of the business vision, the problem being solved, the founding team's strengths, and their execution strategy. Stick to the facts and do not give opinions.
 
-    Summary:
+    Here is the company Info:
 
-    {Company}, legally known as {legal_name}, is focused on addressing {problem_addressed} in the {industry_sector}. The product/service, {product_launched}, launched on {launch_date}, aims to tackle key issues in the market. The company's go-to-market strategy targets {target_customer_location}, leveraging {go_to_market_channels}, but competitors such as {competitors} could present challenges. Despite these challenges, their unique value proposition—{unique_value_proposition}—offers a strong differentiator.
-
-    Financially, while the company reported {revenue_last_six_months} in revenue and {ebitda_last_six_months} EBITDA over the last six months, there are concerns over the monthly burn rate of {monthly_burn_rate} and the sustainability of their cash balance ({cash_balance}). Their goal of raising {fundraising_amount} at a valuation of {company_valuation} will be crucial to maintaining growth. With {full_time_employees} full-time and {part_time_employees} part-time employees, the team’s ability to execute effectively will be vital. The company's previous wins ({team_wins}) and the leadership of the founding team {founding_team} offer hope, but challenges in competition and resource management remain key concerns.
+    {company_data}.
 
     Remember to provide output in the following type of  Output Structure. Choose the headings, and paragraphs based on the prompts above.It may or may not be similar to this example below, but follow the format.
     - <b>Product and Market Validation Stage</b> 
@@ -75,12 +95,10 @@ const dominantTraitsPrompt = PromptTemplate.fromTemplate(`
 JSON Array of Traits (including trait number, name, and description): {traits_list}
 ###
 
-Company Summary: 
+Company Info: 
 
-{Company}, legally registered as {legal_name}, is focused on addressing {problem_addressed} within the {industry_sector}. The founders, {founding_team}, launched {product_launched} on {launch_date}, aiming to capture {target_customer_location}. They’ve built the company from {headquarters_location}, leveraging a unique value proposition of {unique_value_proposition} to stand out from competitors like {competitors}. The founders, driven by {reason_for_starting_company}, are strategically targeting customers through channels like {go_to_market_channels}. 
-
-    Financial performance in the last six months shows a revenue of {revenue_last_six_months} and EBITDA of {ebitda_last_six_months}, with {total_customers_six_months_ago} customers as of six months ago, including notable clients such as {notable_customers}. With a monthly burn rate of {monthly_burn_rate} and a current cash balance of {cash_balance}, the team is efficiently managing its resources. Their experience with {prior_funding_experience} has enabled them to raise {outside_funding_raised}, positioning them well for future fundraising goals of {fundraising_amount}. Their vision and execution strategy are supported by the team’s achievements like {team_wins} and a clear focus on {execution_vision_team}.
-    ###
+{company_data} 
+###
 
 Analyze carefully and inspect the traits that would be most appealing to investors based on the company's profile. For example, ypu can Consider the following criterias:
 
@@ -135,23 +153,9 @@ Now let's review the investment profile questions and company summary, and apply
 ### Investment Profile Questions and Applicant's Answers
 {investmentProfileQuestions}
 
-### Company Summary
-Company Summary for Reference:
-
-  **Overview**:
-  {Company}, legally registered as {legal_name}, operates in the {industry_sector} sector, tackling {problem_addressed} through its {product_launched}. Since its launch on {launch_date}, the company has targeted {target_customer_location} using {go_to_market_channels}.
-
-  **Financial Performance**:
-  Recent figures reveal a revenue of {revenue_last_six_months} with an EBITDA of {ebitda_last_six_months}, supported by a cash balance of {cash_balance}. However, with a monthly burn rate of {monthly_burn_rate}, the company maintains a focused approach to growth and sustainability.
-
-  **Differentiation & Market Position**:
-  {Company}'s unique value proposition, {unique_value_proposition}, distinguishes it from competitors such as {competitors}. 
-
-  **Leadership & Team**:
-  Led by {co_founders}, the team has driven significant customer acquisition, now totaling {total_customers_six_months_ago}, and established strategic partnerships with notable clients like {notable_customers}. 
-
-  **Fundraising Goals**:
-  After successfully raising {outside_funding_raised}, the company seeks additional funding of {fundraising_amount}, with a valuation of {company_valuation} and an equity split of {equity_split} among founders. The execution strategy, {execution_vision_team}, outlines a clear path to capitalize on upcoming market opportunities.
+### Company Info and Context
+{company_data}
+## 
 
 Okay, now Classify the application based on the above criteria, considering the company’s context. Your final output should be one of the following: "Accepted," "Rejected," or "Potential,", along with a reason for the reasoning based on these criteria.
 The output must be in JSON format,containing these fields shown below.
